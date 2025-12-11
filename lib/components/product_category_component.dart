@@ -86,7 +86,7 @@ class _ProductCategoryComponentState extends State<ProductCategoryComponent> {
                 onTap: () {
                   Navigator.pushNamed(
                     context,
-                    '/category/${widget.productCategory['id']}',
+                    '/category/${widget.productCategory['documentId']}',
                   );
                 },
                 child: const Text(

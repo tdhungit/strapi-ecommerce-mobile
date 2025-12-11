@@ -22,14 +22,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Future<void> _getData() async {
     try {
       final categoryId = widget.categoryId;
-      final data = await ApiService.request(
-        '/api/sale-categories/$categoryId',
-        'GET',
+      final data = await ApiService.collection(
+        'product-categories',
+        categoryId,
         options: {'noAuth': true},
       );
       if (mounted) {
         setState(() {
-          _category = data;
+          _category = data['data'];
         });
       }
     } catch (e) {
