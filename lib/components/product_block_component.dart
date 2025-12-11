@@ -84,7 +84,7 @@ class _ProductBlockComponentState extends State<ProductBlockComponent> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '\$${widget.product['price'] ?? '0.00'}',
+                  '\$${widget.product['from_price'] ?? '0.00'}',
                   style: TextStyle(
                     color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
