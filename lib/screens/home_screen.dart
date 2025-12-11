@@ -245,24 +245,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: _data['product_categories']?.length ?? 0,
                 itemBuilder: (context, index) {
                   final category = _data['product_categories'][index];
-                  return ProductCategoryComponent(productCategory: category);
+                  return ProductCategoryComponent(
+                    productCategory: category,
+                    options: (showAllButton: true),
+                  );
                 },
               ),
             ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _getData();
-                  },
-                  child: const Text('Get Data'),
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
           ],
         ),
       ),

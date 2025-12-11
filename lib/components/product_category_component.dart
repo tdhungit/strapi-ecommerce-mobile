@@ -3,10 +3,20 @@ import 'package:strapi_ecommerce_flutter/components/product_block_component.dart
 import 'package:strapi_ecommerce_flutter/services/api_service.dart';
 import 'package:strapi_ecommerce_flutter/services/auth_service.dart';
 
+typedef ProductCategoryQueryParams = ({String? keyword, int? limit, int? page});
+typedef ProductCategoryOptions = ({bool showAllButton});
+
 class ProductCategoryComponent extends StatefulWidget {
-  const ProductCategoryComponent({super.key, required this.productCategory});
+  const ProductCategoryComponent({
+    super.key,
+    required this.productCategory,
+    this.queryParams,
+    this.options,
+  });
 
   final Map<String, dynamic> productCategory;
+  final ProductCategoryQueryParams? queryParams;
+  final ProductCategoryOptions? options;
 
   @override
   State<ProductCategoryComponent> createState() =>
@@ -29,6 +39,9 @@ class _ProductCategoryComponentState extends State<ProductCategoryComponent> {
         key: 'selected_warehouse_id',
       );
       final categoryId = widget.productCategory['id'];
+      final keyword = widget.queryParams?.keyword ?? '';
+      final limit = widget.queryParams?.limit ?? 10;
+      final page = widget.queryParams?.page ?? 1;
       final data = await ApiService.request(
         '/api/sale-products',
         'GET',
@@ -36,6 +49,9 @@ class _ProductCategoryComponentState extends State<ProductCategoryComponent> {
         data: {
           'warehouseId': warehouseId.toString(),
           'categoryId': categoryId.toString(),
+          'keyword': keyword,
+          'limit': limit.toString(),
+          'page': page.toString(),
         },
       );
       if (mounted) {
@@ -82,21 +98,22 @@ class _ProductCategoryComponentState extends State<ProductCategoryComponent> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/category/${widget.productCategory['documentId']}',
-                  );
-                },
-                child: const Text(
-                  'View All',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w600,
+              if (widget.options?.showAllButton == true)
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/category/${widget.productCategory['documentId']}',
+                    );
+                  },
+                  child: const Text(
+                    'View All',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
