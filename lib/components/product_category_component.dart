@@ -33,6 +33,19 @@ class _ProductCategoryComponentState extends State<ProductCategoryComponent> {
     _getData();
   }
 
+  @override
+  void didUpdateWidget(covariant ProductCategoryComponent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.queryParams != oldWidget.queryParams) {
+      if ((widget.queryParams?.page ?? 1) == 1) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
+      _getData();
+    }
+  }
+
   Future<void> _getData() async {
     try {
       final warehouseId = await AuthService.storage.read(
@@ -56,7 +69,12 @@ class _ProductCategoryComponentState extends State<ProductCategoryComponent> {
       );
       if (mounted) {
         setState(() {
-          _products = data['data'] is List ? data['data'] : [];
+          final newProducts = data['data'] is List ? data['data'] : [];
+          if (page > 1) {
+            _products.addAll(newProducts);
+          } else {
+            _products = newProducts;
+          }
           _isLoading = false;
         });
       }
