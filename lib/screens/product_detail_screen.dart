@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:strapi_ecommerce_flutter/components/product_variants_component.dart';
 import 'package:strapi_ecommerce_flutter/services/api_service.dart';
 import 'package:strapi_ecommerce_flutter/utils/utils.dart';
 
@@ -104,13 +105,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    '\$${_product['from_price'] ?? '0.00'}',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  ProductVariantsComponent(product: _product),
                   const SizedBox(height: 16),
                   Html(
                     data: _product['description'] ?? '',
