@@ -17,6 +17,7 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   dynamic _product;
   bool _isLoading = true;
+  // dynamic _selectedVariant;
 
   @override
   void initState() {
@@ -105,7 +106,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ProductVariantsComponent(product: _product),
+                  ProductVariantsComponent(
+                    product: _product,
+                    // onVariantSelected: (variant) {
+                    //   setState(() {
+                    //     _selectedVariant = variant;
+                    //   });
+                    // },
+                  ),
                   const SizedBox(height: 16),
                   Html(
                     data: _product['description'] ?? '',
