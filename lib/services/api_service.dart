@@ -65,7 +65,7 @@ class ApiService {
     }
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to request');
+      throw Exception('Failed to request: $method $url ${response.body}');
     }
 
     final responseBody = response.body;

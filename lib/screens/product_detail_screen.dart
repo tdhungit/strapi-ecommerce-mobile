@@ -17,7 +17,7 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   dynamic _product;
   bool _isLoading = true;
-  // dynamic _selectedVariant;
+  dynamic _selectedVariant;
 
   @override
   void initState() {
@@ -37,6 +37,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       _product = response;
       _isLoading = false;
     });
+  }
+
+  Future<void> addToCart() async {
+    await ApiService.request(
+      '/api/customers/contact/cart/add',
+      'POST',
+      data: {
+        'items': [
+          {
+            'id': _selectedVariant['id'],
+            'cartQty': 1,
+            'price':
+                _selectedVariant['product_prices'].first['price']?.toDouble() ??
+                0.0,
+          },
+        ],
+      },
+    );
+    setState(() {
+      _selectedVariant = null;
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Added to cart!')));
+    }
   }
 
   @override
@@ -108,11 +134,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const SizedBox(height: 8),
                   ProductVariantsComponent(
                     product: _product,
-                    // onVariantSelected: (variant) {
-                    //   setState(() {
-                    //     _selectedVariant = variant;
-                    //   });
-                    // },
+                    onVariantSelected: (variant) {
+                      setState(() {
+                        _selectedVariant = variant;
+                      });
+                    },
                   ),
                   const SizedBox(height: 16),
                   Html(
@@ -129,12 +155,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     },
                   ),
+                  // Add some bottom padding to avoid FAB covering content
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
           ],
         ),
       ),
+      floatingActionButton: _selectedVariant != null
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                addToCart();
+              },
+              backgroundColor: Theme.of(context).primaryColor,
+              icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
+              label: const Text(
+                'Add to Cart',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
