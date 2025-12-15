@@ -81,7 +81,9 @@ class _ProductVariantsComponentState extends State<ProductVariantsComponent> {
                     Text(
                       '\$$price',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).primaryColor,
+                        color: _selectedVariant == variant
+                            ? Colors.white
+                            : Theme.of(context).primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
