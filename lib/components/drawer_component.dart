@@ -39,6 +39,31 @@ class _DrawerComponentState extends State<DrawerComponent> {
     }
   }
 
+  Widget _buildCategoryItem(dynamic category, {double padding = 16.0}) {
+    List<dynamic> children = category['children'] ?? [];
+
+    if (children.isEmpty) {
+      return ListTile(
+        contentPadding: EdgeInsets.only(left: padding, right: 16.0),
+        leading: padding == 16.0 ? const Icon(Icons.category) : null,
+        title: Text(category['name']),
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.pushNamed(context, '/category/${category['documentId']}');
+        },
+      );
+    } else {
+      return ExpansionTile(
+        tilePadding: EdgeInsets.only(left: padding, right: 16.0),
+        leading: padding == 16.0 ? const Icon(Icons.category) : null,
+        title: Text(category['name']),
+        children: children
+            .map((child) => _buildCategoryItem(child, padding: padding + 16.0))
+            .toList(),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -78,19 +103,7 @@ class _DrawerComponentState extends State<DrawerComponent> {
             },
           ),
           if (_categories.isNotEmpty)
-            ..._categories.map(
-              (category) => ListTile(
-                leading: const Icon(Icons.category),
-                title: Text(category['name']),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(
-                    context,
-                    '/category/${category['documentId']}',
-                  );
-                },
-              ),
-            ),
+            ..._categories.map((category) => _buildCategoryItem(category)),
           ListTile(
             leading: const Icon(Icons.person),
             title: const Text('Profile'),
