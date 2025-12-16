@@ -104,6 +104,15 @@ class _DrawerComponentState extends State<DrawerComponent> {
           ),
           if (_categories.isNotEmpty)
             ..._categories.map((category) => _buildCategoryItem(category)),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.shopping_cart, color: Colors.red),
+            title: const Text('Checkout', style: TextStyle(color: Colors.red)),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/checkout');
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.person),
             title: const Text('Profile'),

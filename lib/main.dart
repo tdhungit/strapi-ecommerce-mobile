@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:strapi_ecommerce_flutter/screens/category_screen.dart';
+import 'package:strapi_ecommerce_flutter/screens/checkout_screen.dart';
 import 'package:strapi_ecommerce_flutter/screens/product_detail_screen.dart';
 
 import 'screens/home_screen.dart';
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
             AuthService.isLoggedIn() ? const HomeScreen() : const LoginScreen(),
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
+        '/checkout': (context) => const CheckoutScreen(),
       },
       onGenerateRoute: (settings) {
         // Product category
