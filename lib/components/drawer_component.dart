@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:strapi_ecommerce_flutter/services/api_service.dart';
 import 'package:strapi_ecommerce_flutter/services/auth_service.dart';
 
 class DrawerComponent extends StatefulWidget {
@@ -9,11 +10,39 @@ class DrawerComponent extends StatefulWidget {
 }
 
 class _DrawerComponentState extends State<DrawerComponent> {
+  List<dynamic> _categories = [];
+
   Future<void> _logout() async {
     await AuthService.logout();
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/login');
     }
+  }
+
+  Future<void> _getCategories() async {
+    try {
+      final data = await ApiService.request(
+        '/api/product-categories/extra/tree',
+        'GET',
+        data: {'status': 'Active'},
+        options: {'noAuth': true},
+      );
+      setState(() {
+        _categories = data;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getCategories();
   }
 
   @override
@@ -48,6 +77,20 @@ class _DrawerComponentState extends State<DrawerComponent> {
               Navigator.pop(context);
             },
           ),
+          if (_categories.isNotEmpty)
+            ..._categories.map(
+              (category) => ListTile(
+                leading: const Icon(Icons.category),
+                title: Text(category['name']),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    '/category/${category['documentId']}',
+                  );
+                },
+              ),
+            ),
           ListTile(
             leading: const Icon(Icons.person),
             title: const Text('Profile'),
