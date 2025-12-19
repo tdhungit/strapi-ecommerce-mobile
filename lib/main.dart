@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:strapi_ecommerce_flutter/screens/category_screen.dart';
 import 'package:strapi_ecommerce_flutter/screens/checkout_screen.dart';
+import 'package:strapi_ecommerce_flutter/screens/my_orders_screen.dart';
 import 'package:strapi_ecommerce_flutter/screens/my_profile_screen.dart';
 import 'package:strapi_ecommerce_flutter/screens/product_detail_screen.dart';
+import 'package:strapi_ecommerce_flutter/screens/setting_screen.dart';
 
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -33,7 +35,9 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/my-profile': (context) => const MyProfileScreen(),
         '/home': (context) => const HomeScreen(),
+        '/setting': (context) => const SettingScreen(),
         '/checkout': (context) => const CheckoutScreen(),
+        '/my-orders': (context) => const MyOrdersScreen(),
       },
       onGenerateRoute: (settings) {
         // Product category

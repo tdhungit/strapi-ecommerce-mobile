@@ -122,13 +122,19 @@ class _DrawerComponentState extends State<DrawerComponent> {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.list),
+            title: const Text('My Orders'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/my-orders');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),
             onTap: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings feature coming soon!')),
-              );
+              Navigator.pushNamed(context, '/setting');
             },
           ),
           const Divider(),
