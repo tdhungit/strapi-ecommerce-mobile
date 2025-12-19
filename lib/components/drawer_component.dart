@@ -118,9 +118,7 @@ class _DrawerComponentState extends State<DrawerComponent> {
             title: const Text('Profile'),
             onTap: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile feature coming soon!')),
-              );
+              Navigator.pushNamed(context, '/my-profile');
             },
           ),
           ListTile(
