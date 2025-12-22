@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:strapi_ecommerce_flutter/components/order_coupon_component.dart';
 import 'package:strapi_ecommerce_flutter/services/api_service.dart';
 import 'package:strapi_ecommerce_flutter/utils/utils.dart';
 
@@ -14,6 +15,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   dynamic _cart = {};
   bool _isLoading = true;
+  List<dynamic> _selectedCoupons = [];
 
   @override
   void initState() {
@@ -48,7 +50,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     for (var item in _cart['cart_details']) {
       total += (item['price'] ?? 0) * (item['quantity'] ?? 0);
     }
-    return total;
+    for (var coupon in _selectedCoupons) {
+      total -= (coupon['discount_value'] ?? 0);
+    }
+    return total > 0 ? total : 0.0;
   }
 
   String _getVariantImage(dynamic variant) {
@@ -143,6 +148,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                           const SizedBox(height: 12),
                           ...cartDetails.map((item) => _buildCartItem(item)),
+                          const SizedBox(height: 24),
+                          _buildCouponSection(),
                           const SizedBox(height: 24),
                           _buildOrderSummary(),
                           const SizedBox(height: 24),
@@ -346,6 +353,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const SizedBox(height: 8),
           _summaryRow('Shipping', 0.0), // Placeholder
           const SizedBox(height: 8),
+          if (_selectedCoupons.isNotEmpty) ...[
+            _summaryRow('Discount', calculateTotalDiscount(), isDiscount: true),
+            const SizedBox(height: 8),
+          ],
           _summaryRow('Tax', 0.0), // Placeholder
           const Divider(height: 24),
           _summaryRow('Total', _totalAmount, isTotal: true),
@@ -354,7 +365,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _summaryRow(String label, double amount, {bool isTotal = false}) {
+  double calculateTotalDiscount() {
+    double discount = 0.0;
+    for (var coupon in _selectedCoupons) {
+      discount += (coupon['discount_value'] ?? 0);
+    }
+    return discount;
+  }
+
+  Widget _summaryRow(
+    String label,
+    double amount, {
+    bool isTotal = false,
+    bool isDiscount = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -373,10 +397,124 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           style: TextStyle(
             fontSize: isTotal ? 16 : 14,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-            color: isTotal ? Theme.of(context).primaryColor : Colors.black,
+            color: isTotal
+                ? Theme.of(context).primaryColor
+                : isDiscount
+                ? Colors.green
+                : Colors.black,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCouponSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: _openCouponModal,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.confirmation_number_outlined,
+                color: Colors.orange,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Coupon Code',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                  if (_selectedCoupons.isNotEmpty)
+                    Text(
+                      '${_selectedCoupons.length} coupon(s) applied',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    )
+                  else
+                    Text(
+                      'Select a coupon',
+                      style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                    ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openCouponModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.only(top: 16),
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Select Coupon',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: OrderCouponComponent(
+                onCouponsSelected: (coupons) {
+                  setState(() {
+                    _selectedCoupons = coupons;
+                  });
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Coupon ${coupons[0]['code']} applied!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
