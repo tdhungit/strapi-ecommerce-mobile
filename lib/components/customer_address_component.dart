@@ -17,6 +17,10 @@ class _CustomerAddressComponentState extends State<CustomerAddressComponent> {
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
 
+  List<dynamic> _countries = [];
+  List<dynamic> _states = [];
+  List<dynamic> _cities = [];
+
   // Controllers for add address form
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
@@ -31,6 +35,7 @@ class _CustomerAddressComponentState extends State<CustomerAddressComponent> {
   void initState() {
     super.initState();
     _fetchAddress();
+    _fetchCountries();
   }
 
   @override
@@ -44,6 +49,72 @@ class _CustomerAddressComponentState extends State<CustomerAddressComponent> {
     _phoneController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchCountries() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await ApiService.request(
+        '/api/address/countries',
+        'GET',
+        options: {'noAuth': true},
+      );
+      setState(() {
+        _countries = response;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
+  Future<void> _fetchStates(String country) async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await ApiService.request(
+        '/api/address/countries/$country/states',
+        'GET',
+        options: {'noAuth': true},
+      );
+      setState(() {
+        _states = response;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
+  Future<void> _fetchCities(String state) async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await ApiService.request(
+        '/api/address/states/$state/cities',
+        'GET',
+        options: {'noAuth': true},
+      );
+      setState(() {
+        _cities = response;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
   }
 
   Future<void> _fetchAddress() async {
@@ -121,92 +192,144 @@ class _CustomerAddressComponentState extends State<CustomerAddressComponent> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 16,
-          right: 16,
-          top: 16,
-        ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Add New Address',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Contact Name'),
-                validator: (v) => v?.isEmpty == true ? 'Required' : null,
-              ),
-              TextFormField(
-                controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Phone'),
-                validator: (v) => v?.isEmpty == true ? 'Required' : null,
-                keyboardType: TextInputType.phone,
-              ),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (v) => v?.isEmpty == true ? 'Required' : null,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(labelText: 'Address'),
-                validator: (v) => v?.isEmpty == true ? 'Required' : null,
-              ),
-              Row(
+      builder: (context) => StatefulBuilder(
+        builder: (BuildContext context, StateSetter setModalState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 16,
+              right: 16,
+              top: 16,
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _cityController,
-                      decoration: const InputDecoration(labelText: 'City'),
-                      validator: (v) => v?.isEmpty == true ? 'Required' : null,
-                    ),
+                  const Text(
+                    'Add New Address',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _stateController,
-                      decoration: const InputDecoration(labelText: 'State'),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Contact Name',
                     ),
+                    validator: (v) => v?.isEmpty == true ? 'Required' : null,
                   ),
+                  TextFormField(
+                    controller: _phoneController,
+                    decoration: const InputDecoration(labelText: 'Phone'),
+                    validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                    validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  TextFormField(
+                    controller: _addressController,
+                    decoration: const InputDecoration(labelText: 'Address'),
+                    validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                  ),
+                  DropdownButtonFormField<dynamic>(
+                    decoration: const InputDecoration(labelText: 'Country'),
+                    isExpanded: true,
+                    items: _countries.map((c) {
+                      return DropdownMenuItem(
+                        value: c,
+                        child: Text(
+                          c['name'] ?? 'Unknown',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) async {
+                      if (val != null) {
+                        _countryController.text = val['name'];
+                        _stateController.clear();
+                        _cityController.clear();
+                        setModalState(() {
+                          _states = [];
+                          _cities = [];
+                        });
+                        await _fetchStates(val['name']);
+                        setModalState(() {});
+                      }
+                    },
+                    validator: (v) => v == null ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<dynamic>(
+                    decoration: const InputDecoration(labelText: 'State'),
+                    isExpanded: true,
+                    items: _states.map((s) {
+                      return DropdownMenuItem(
+                        value: s,
+                        child: Text(
+                          s['name'] ?? 'Unknown',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: _states.isEmpty
+                        ? null
+                        : (val) async {
+                            if (val != null) {
+                              _stateController.text = val['name'];
+                              _cityController.clear();
+                              setModalState(() {
+                                _cities = [];
+                              });
+                              await _fetchCities(val['name']);
+                              setModalState(() {});
+                            }
+                          },
+                    validator: (v) => v == null ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<dynamic>(
+                    decoration: const InputDecoration(labelText: 'City'),
+                    isExpanded: true,
+                    items: _cities.map((c) {
+                      return DropdownMenuItem(
+                        value: c,
+                        child: Text(
+                          c['name'] ?? 'Unknown',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: _cities.isEmpty
+                        ? null
+                        : (val) {
+                            if (val != null) {
+                              _cityController.text = val['name'];
+                            }
+                          },
+                    validator: (v) => v == null ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _zipCodeController,
+                    decoration: const InputDecoration(labelText: 'Zip Code'),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _saveAddress,
+                    child: const Text('Save Address'),
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _zipCodeController,
-                      decoration: const InputDecoration(labelText: 'Zip Code'),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _countryController,
-                      decoration: const InputDecoration(labelText: 'Country'),
-                      validator: (v) => v?.isEmpty == true ? 'Required' : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _saveAddress,
-                child: const Text('Save Address'),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
