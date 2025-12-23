@@ -417,6 +417,7 @@ class _CustomerAddressComponentState extends State<CustomerAddressComponent> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 8),
                   ],
 
                   // Add New Address Button
