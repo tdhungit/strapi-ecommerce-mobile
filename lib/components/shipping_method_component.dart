@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:strapi_ecommerce_flutter/components/customer_address_component.dart';
 import 'package:strapi_ecommerce_flutter/services/api_service.dart';
 
 class ShippingMethodComponent extends StatefulWidget {
@@ -12,7 +13,6 @@ class ShippingMethodComponent extends StatefulWidget {
 }
 
 class _ShippingMethodComponentState extends State<ShippingMethodComponent> {
-  List<dynamic> _address = [];
   dynamic _selectedAddress;
   List<dynamic> _shippingMethods = [];
   bool _isLoading = true;
@@ -21,7 +21,7 @@ class _ShippingMethodComponentState extends State<ShippingMethodComponent> {
   void initState() {
     super.initState();
     _fetchDefaultAddress();
-    _fetchAddress();
+
     _fetchShippingMethods();
   }
 
@@ -31,32 +31,10 @@ class _ShippingMethodComponentState extends State<ShippingMethodComponent> {
         '/api/customers/contact-addresses/default',
         'GET',
       );
-      print(response);
       setState(() {
         _selectedAddress = response['address'];
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
-      }
-    }
-  }
-
-  Future<void> _fetchAddress() async {
-    setState(() => _isLoading = true);
-    try {
-      final response = await ApiService.request(
-        '/api/customers/contact-addresses',
-        'GET',
-      );
-      setState(() {
-        _address = response;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -98,12 +76,21 @@ class _ShippingMethodComponentState extends State<ShippingMethodComponent> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (_selectedAddress != null) ...[
-                    const Text(
-                      'Selected Address',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Selected Address',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _openAddressModal,
+                          child: const Text('Change'),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Container(
@@ -171,67 +158,7 @@ class _ShippingMethodComponentState extends State<ShippingMethodComponent> {
                     ),
                     const SizedBox(height: 24),
                   ],
-                  const Text(
-                    'All Addresses',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  if (_address.isEmpty) const Text('No addresses found'),
-                  ..._address
-                      .where((a) => a['id'] != _selectedAddress?['id'])
-                      .map(
-                        (address) => InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedAddress = address;
-                            });
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(
-                                  Icons.location_on_outlined,
-                                  color: Colors.grey,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        address['name'] ?? 'Address',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${address['address'] ?? ''}, ${address['city'] ?? ''}',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.grey[600],
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                  const SizedBox(height: 24),
+
                   const Text(
                     'Shipping Methods',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -270,5 +197,47 @@ class _ShippingMethodComponentState extends State<ShippingMethodComponent> {
               ),
             ),
           );
+  }
+
+  void _openAddressModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.only(top: 16),
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Select Address',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: CustomerAddressComponent(
+                onAddressSelected: (allAddresses, selected) {
+                  setState(() {
+                    _selectedAddress = selected;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
