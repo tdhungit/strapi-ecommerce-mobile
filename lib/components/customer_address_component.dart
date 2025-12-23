@@ -25,6 +25,7 @@ class _CustomerAddressComponentState extends State<CustomerAddressComponent> {
   final _zipCodeController = TextEditingController();
   final _countryController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
 
   @override
   void initState() {
@@ -41,6 +42,7 @@ class _CustomerAddressComponentState extends State<CustomerAddressComponent> {
     _zipCodeController.dispose();
     _countryController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -75,13 +77,14 @@ class _CustomerAddressComponentState extends State<CustomerAddressComponent> {
         '/api/customers/contact-addresses',
         'POST',
         data: {
-          'name': _nameController.text,
+          'fullName': _nameController.text,
+          'phone': _phoneController.text,
+          'email': _emailController.text,
           'address': _addressController.text,
           'city': _cityController.text,
           'state': _stateController.text,
-          'zipcode': _zipCodeController.text,
+          'postalCode': _zipCodeController.text,
           'country': _countryController.text,
-          'phone': _phoneController.text,
         },
       );
 
@@ -146,6 +149,12 @@ class _CustomerAddressComponentState extends State<CustomerAddressComponent> {
                 decoration: const InputDecoration(labelText: 'Phone'),
                 validator: (v) => v?.isEmpty == true ? 'Required' : null,
                 keyboardType: TextInputType.phone,
+              ),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                validator: (v) => v?.isEmpty == true ? 'Required' : null,
+                keyboardType: TextInputType.emailAddress,
               ),
               TextFormField(
                 controller: _addressController,
