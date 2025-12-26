@@ -548,14 +548,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const SizedBox(height: 16),
             Expanded(
               child: ShippingMethodComponent(
-                onShippingMethodSelected: (data, address) {
-                  // Assuming data might contain relevant info.
-                  // Implemenation of proper selection handling depends on component logic update.
+                onShippingMethodSelected: (method, address) {
                   setState(() {
-                    // Placeholder logic if data returns what we expect
-                    // _selectedShippingMethod = data.isNotEmpty ? data[0] : null;
+                    _selectedShippingMethod = method;
+                    _selectedAddress = address;
                   });
                   Navigator.pop(context);
+
+                  if (method != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${method['name']} selected!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
                 },
               ),
             ),

@@ -5,7 +5,7 @@ import 'package:strapi_ecommerce_flutter/services/api_service.dart';
 class ShippingMethodComponent extends StatefulWidget {
   const ShippingMethodComponent({super.key, this.onShippingMethodSelected});
 
-  final Function(List<dynamic>, dynamic address)? onShippingMethodSelected;
+  final Function(dynamic method, dynamic address)? onShippingMethodSelected;
 
   @override
   State<ShippingMethodComponent> createState() =>
@@ -13,9 +13,10 @@ class ShippingMethodComponent extends StatefulWidget {
 }
 
 class _ShippingMethodComponentState extends State<ShippingMethodComponent> {
-  dynamic _selectedAddress;
-  List<dynamic> _shippingMethods = [];
   bool _isLoading = true;
+  dynamic _selectedAddress;
+  dynamic _selectedShippingMethod;
+  List<dynamic> _shippingMethods = [];
 
   @override
   void initState() {
@@ -33,6 +34,10 @@ class _ShippingMethodComponentState extends State<ShippingMethodComponent> {
       );
       setState(() {
         _selectedAddress = response['address'];
+        widget.onShippingMethodSelected?.call(
+          _selectedShippingMethod,
+          _selectedAddress,
+        );
       });
     } catch (e) {
       if (mounted) {
@@ -166,32 +171,132 @@ class _ShippingMethodComponentState extends State<ShippingMethodComponent> {
                   const SizedBox(height: 8),
                   if (_shippingMethods.isEmpty)
                     const Text('No shipping methods available'),
-                  ..._shippingMethods.map(
-                    (method) => Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.local_shipping_outlined,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            method['name'] ?? 'Method',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                  RadioGroup<dynamic>(
+                    groupValue: _selectedShippingMethod,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedShippingMethod = value;
+                      });
+                    },
+                    child: Column(
+                      children: _shippingMethods
+                          .map(
+                            (method) => GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedShippingMethod = method;
+                                });
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: _selectedShippingMethod == method
+                                        ? Colors.blue
+                                        : Colors.grey.shade300,
+                                    width: _selectedShippingMethod == method
+                                        ? 2
+                                        : 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: _selectedShippingMethod == method
+                                      ? Colors.blue.withValues(alpha: 0.05)
+                                      : Colors.white,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Radio<dynamic>(
+                                      value: method,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _selectedShippingMethod = value;
+                                        });
+                                      },
+                                      activeColor: Colors.blue,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.local_shipping_outlined,
+                                      color: Colors.grey,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            method['name'] ?? 'Method',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              color:
+                                                  _selectedShippingMethod ==
+                                                      method
+                                                  ? Colors.blue
+                                                  : Colors.black,
+                                            ),
+                                          ),
+                                          if (method['description'] != null &&
+                                              method['description']
+                                                  .toString()
+                                                  .isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 4,
+                                              ),
+                                              child: Text(
+                                                method['description'],
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          )
+                          .toList(),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  if (_shippingMethods.isNotEmpty)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _selectedShippingMethod != null
+                            ? () {
+                                widget.onShippingMethodSelected?.call(
+                                  _selectedShippingMethod,
+                                  _selectedAddress,
+                                );
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                          disabledBackgroundColor: Colors.grey[300],
+                        ),
+                        child: const Text(
+                          'Confirm Shipping Method',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 32),
                 ],
               ),
